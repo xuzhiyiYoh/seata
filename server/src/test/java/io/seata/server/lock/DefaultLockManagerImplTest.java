@@ -15,8 +15,10 @@
  */
 package io.seata.server.lock;
 
+import io.seata.common.XID;
 import io.seata.core.model.BranchType;
 import io.seata.server.UUIDGenerator;
+import io.seata.server.lock.memory.MemoryLockManagerImpl;
 import io.seata.server.session.BranchSession;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,6 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
+
 
 /**
  * The type Default lock manager impl test.
@@ -33,7 +36,7 @@ import java.util.stream.Stream;
  */
 public class DefaultLockManagerImplTest {
 
-    private LockManager lockManager = new DefaultLockManagerImpl();
+    private LockManager lockManager = new MemoryLockManagerImpl();
 
     private static final long transactionId = UUIDGenerator.generateUUID();
 
@@ -62,7 +65,8 @@ public class DefaultLockManagerImplTest {
      */
     @Test
     public void isLockableTest() throws Exception {
-        boolean resultOne = lockManager.isLockable(transactionId, resourceId, lockKey);
+        boolean resultOne = lockManager.isLockable(XID.generateXID(transactionId), resourceId, lockKey);
+
         Assertions.assertTrue(resultOne);
     }
 
@@ -73,6 +77,7 @@ public class DefaultLockManagerImplTest {
      */
     static Stream<BranchSession> branchSessionProvider() {
         BranchSession branchSession = new BranchSession();
+        branchSession.setXid(XID.generateXID(transactionId));
         branchSession.setBranchId(1L);
         branchSession.setTransactionId(transactionId);
         branchSession.setClientId("c1");
